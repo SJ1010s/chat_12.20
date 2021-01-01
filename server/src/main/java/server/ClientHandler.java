@@ -17,7 +17,7 @@ public class ClientHandler {
     DataOutputStream out;
     private String nickname;
     private String login;
-
+    ExecutorService service = Executors.newCachedThreadPool();
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -26,7 +26,6 @@ public class ClientHandler {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            ExecutorService service = Executors.newCachedThreadPool();
   //          new Thread(()-> {
             service.submit(()->{
                     try {
