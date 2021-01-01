@@ -50,6 +50,9 @@ public class Controller implements Initializable {
 
     private boolean authenticated;
     private String nickname;
+    ///==============///
+    private String login;
+    ///==============///
     private final String TITLE = "ГикЧат";
 
     private Stage stage;
@@ -67,6 +70,9 @@ public class Controller implements Initializable {
 
         if (!authenticated) {
             nickname = "";
+            ///==============///
+            History.stop();
+            ///==============///
         }
         textArea.clear();
         setTitle(nickname);
@@ -109,12 +115,16 @@ public class Controller implements Initializable {
                             if (str.startsWith("/authok")) {
                                 nickname = str.split("\\s", 2)[1];
                                 setAuthenticated(true);
+                                ///==============///
+                                textArea.appendText(History.getLast100LinesOfHistory(login));
+                                History.start(login);
+                                ///==============///
                                 break;
                             }
-                            if(str.startsWith("/regok")){
+                            if (str.startsWith("/regok")) {
                                 regController.addMsgToTextArea("Регистрация прошла успешно");
                             }
-                            if(str.startsWith("/regno")){
+                            if (str.startsWith("/regno")) {
                                 regController.addMsgToTextArea("Регистрация не получилась \n возможно логин или пароль заняты");
                             }
                             textArea.appendText(str + "\n");
@@ -140,9 +150,16 @@ public class Controller implements Initializable {
                                         }
                                     });
                                 }
+                                if (str.startsWith("/yournickis ")) {
+                                    nickname = str.split(" ")[1];
+                                    setTitle(nickname);
+                                }
 
                             } else {
                                 textArea.appendText(str + "\n");
+                                ///==============///
+                                History.writeLine(str);
+                                ///==============///
                             }
                         }
                     } catch (IOException e) {
@@ -182,6 +199,9 @@ public class Controller implements Initializable {
         try {
             out.writeUTF(String.format("/auth %s %s", loginField.getText().trim().toLowerCase(),
                     passwordField.getText().trim()));
+            ///==============///
+            login = loginField.getText();
+            ///==============///
             passwordField.clear();
         } catch (IOException e) {
             e.printStackTrace();
@@ -199,7 +219,7 @@ public class Controller implements Initializable {
         textField.setText("/w " + receiver + " ");
     }
 
-    private void createRegWindow(){
+    private void createRegWindow() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/reg.fxml"));
             Parent root = fxmlLoader.load();
@@ -216,7 +236,7 @@ public class Controller implements Initializable {
         }
     }
 
-    public void tryToReg(String login, String password, String nickname){
+    public void tryToReg(String login, String password, String nickname) {
         String msg = String.format("/reg %s %s %s", login, password, nickname);
 
         if (socket == null || socket.isClosed()) {
@@ -234,3 +254,4 @@ public class Controller implements Initializable {
         regStage.show();
     }
 }
+
