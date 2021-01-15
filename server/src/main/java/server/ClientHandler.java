@@ -8,8 +8,10 @@ import java.sql.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.*;
 
 public class ClientHandler {
+    private static final Logger cliHandLogger = Logger.getLogger(ClientHandler.class.getName());
 
     Server server = null;
     Socket socket = null;
@@ -21,6 +23,12 @@ public class ClientHandler {
 
     public ClientHandler(Server server, Socket socket) {
         try {
+            Handler consoleServHandler = new ConsoleHandler();
+            Handler fileServHandler = new FileHandler(
+                    "Log/ClientHandlerLog_%g.xml", 10*1024 ,40, true);
+            cliHandLogger.addHandler(consoleServHandler);
+            cliHandLogger.addHandler(fileServHandler);
+
             this.server = server;
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
@@ -44,7 +52,8 @@ public class ClientHandler {
                                         nickname = newNick;
                                         sendMsg("/authok " + nickname);
                                         server.subscribe(this);
-                                        System.out.println("Клиент " + nickname + " подключился");
+//                                        System.out.println("Клиент " + nickname + " подключился");
+                                        cliHandLogger.log(Level.INFO, "Клиент " + nickname + " подключился");
                                         socket.setSoTimeout(0);
                                         break;
                                     }else{
@@ -113,7 +122,8 @@ public class ClientHandler {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }finally {
-                        System.out.println("Клиент отключился");
+//                        System.out.println("Клиент отключился");
+                        cliHandLogger.log(Level.INFO, "Клиент " + nickname + " отключился");
                         server.unsubscribe(this);
                         try {
                             socket.close();
@@ -132,6 +142,8 @@ public class ClientHandler {
             out.writeUTF(msg);
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            service.shutdown();
         }
     }
 
