@@ -5,6 +5,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ClientHandler {
 
@@ -14,7 +17,7 @@ public class ClientHandler {
     DataOutputStream out;
     private String nickname;
     private String login;
-
+    ExecutorService service = Executors.newCachedThreadPool();
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -23,7 +26,8 @@ public class ClientHandler {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            new Thread(()-> {
+  //          new Thread(()-> {
+            service.submit(()->{
                     try {
                         // цикл аутентификации
                         while (true){
@@ -117,7 +121,7 @@ public class ClientHandler {
                             e.printStackTrace();
                         }
                     }
-            }).start();
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
