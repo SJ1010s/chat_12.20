@@ -7,8 +7,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.*;
 
 public class Server {
+    private static final Logger serverLogger = Logger.getLogger(Server.class.getName());
 
     private static int PORT = 8191;
     ServerSocket server = null;
@@ -17,21 +19,34 @@ public class Server {
     private AuthService authService;
 
     public Server() {
+        Handler consoleServHandler = new ConsoleHandler();
+        try {
+            Handler fileServHandler = new FileHandler(
+                    "Log/ServerLog_%g.xml", 10*1024 ,40, true);
+            fileServHandler.setFormatter(new XMLFormatter());
+            serverLogger.addHandler(fileServHandler);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        serverLogger.addHandler(consoleServHandler);
         clients = new Vector<>();
       //  authService = new SimpleAuthService();
 
         if (!SQLiteHandler.connect()){
+            serverLogger.log(Level.INFO, "Не удалось подключиться к БД");
             throw new RuntimeException("Не удалось подключиться к БД");
         }
         authService = new SQLiteAuthService();
 
         try {
             server = new ServerSocket(PORT);
-            System.out.println("Сервер запущен");
+            serverLogger.log(Level.INFO, "Сервер запущен");
+//            System.out.println("Сервер запущен");
 
             while (true) {
                 socket = server.accept();
-                System.out.println("Клиент подключился");
+                serverLogger.log(Level.INFO, "Клиент подключился");
+//                System.out.println("Клиент подключился");
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
